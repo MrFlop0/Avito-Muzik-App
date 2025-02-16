@@ -16,7 +16,6 @@ class MusicService : Service() {
     private val binder = MusicBinder()
     private var mediaPlayer: MediaPlayer? = null
     private var currentTrackUrl: String? = null
-    private var isPlaying = false
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
@@ -30,6 +29,7 @@ class MusicService : Service() {
     }
 
     fun playTrack(url: String, name: String?) {
+        val trackName  = name.orEmpty()
         if (!compareMp3Prefix(currentTrackUrl, url)) {
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
@@ -43,33 +43,20 @@ class MusicService : Service() {
                 }
             }
             currentTrackUrl = url
-            isPlaying = true
-            startForeground(1, createNotification("Playing - ${name.orEmpty()}"))
+            startForeground(NOTIFICATION_ID, createNotification("Playing - $trackName"))
         } else {
-            if (mediaPlayer?.currentPosition != 0) {
-                mediaPlayer?.seekTo(0)
-            }
-            resumeTrack()
+            resumeTrack(trackName)
         }
     }
 
     fun pauseTrack() {
         mediaPlayer?.pause()
-        isPlaying = false
-        startForeground(1, createNotification("Paused"))
+        updateNotification("Paused")
     }
 
-    private fun resumeTrack() {
+    private fun resumeTrack(trackName: String) {
         mediaPlayer?.start()
-        isPlaying = true
-    }
-
-    fun stopTrack() {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
-        isPlaying = false
-        stopSelf()
+        updateNotification("Playing - $trackName")
     }
 
     fun getTrackProgress(): Int = mediaPlayer?.currentPosition ?: 0
@@ -77,8 +64,6 @@ class MusicService : Service() {
     fun seekTo(position: Int) {
         mediaPlayer?.seekTo(position)
     }
-
-    fun isPlaying(): Boolean = isPlaying
 
     private fun createNotification(content: String): Notification {
         return NotificationCompat.Builder(this, "music_channel")
@@ -103,6 +88,12 @@ class MusicService : Service() {
         super.onDestroy()
     }
 
+    private fun updateNotification(text: String) {
+        val notification = createNotification(text)
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
     private fun compareMp3Prefix(current: String?, url: String): Boolean {
         val prefix1 = getPrefix(current)
         val prefix2 = getPrefix(url)
@@ -114,5 +105,7 @@ class MusicService : Service() {
         return if (index != -1) url?.substring(0, index!! + 4) else null
     }
 
-
+    companion object {
+        private const val NOTIFICATION_ID = 1
+    }
 }

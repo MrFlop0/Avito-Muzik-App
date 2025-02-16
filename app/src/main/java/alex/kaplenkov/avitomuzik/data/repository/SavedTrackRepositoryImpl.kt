@@ -64,12 +64,15 @@ class SavedTrackRepositoryImpl(
                     downloadFile(it, context, coverFileName)
                 } ?: downloadFile(track.album.cover, context, coverFileName)
 
-                // Convert to TrackEntity
-                track.toTrackEntity().copy(
-                    preview = trackUri.toString(),
-                    coverXl = coverUri.toString(),
-                    cover = coverUri.toString()
-                )
+                if (trackUri == null || coverUri == null) {
+                    null
+                } else {
+                    track.toTrackEntity().copy(
+                        preview = trackUri.toString(),
+                        coverXl = coverUri.toString(),
+                        cover = coverUri.toString()
+                    )
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
@@ -80,7 +83,8 @@ class SavedTrackRepositoryImpl(
     private fun downloadFile(url: String, context: Context, fileName: String): Uri? {
         try {
             val input = URL(url).openStream()
-            val file = File(context.filesDir, fileName)
+            val directory = context.getExternalFilesDir(null) ?: context.filesDir
+            val file = File(directory, fileName)
             val output = FileOutputStream(file)
             input.copyTo(output)
             output.close()

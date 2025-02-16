@@ -13,10 +13,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -70,9 +68,6 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val track = apiTrackRepository.getTrackById(id) ?: savedTrackRepository.getTrackById(id)
             setTrack(track)
-//            _currentTrack.value = track
-//            _trackDuration.value = track?.duration ?: 30
-//            _trackProgress.value = musicService?.getTrackProgress() ?: 0
             play()
         }
     }
@@ -131,13 +126,6 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun unbindService(context: Context) {
-        if (isServiceBound) {
-            context.unbindService(serviceConnection)
-            isServiceBound = false
-        }
-    }
-
     fun toggleTrackSaved(track: Track, context: Context) {
         viewModelScope.launch {
             if (!isSaved.value) {
@@ -162,7 +150,7 @@ class PlayerViewModel @Inject constructor(
             _currentTrack.value = track
             _trackDuration.value = track?.duration ?: 0
             _trackProgress.value = 0
-            _trackProgress.value = musicService?.getTrackProgress() ?: 0
+            _trackProgress.value = 0
             _isSaved.value = savedTrackRepository.getTrackById(track?.id ?: -1) != null
         }
     }

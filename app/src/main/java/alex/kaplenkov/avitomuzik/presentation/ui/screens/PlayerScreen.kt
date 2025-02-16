@@ -1,6 +1,7 @@
 package alex.kaplenkov.avitomuzik.presentation.ui.screens
 
 import alex.kaplenkov.avitomuzik.R
+import alex.kaplenkov.avitomuzik.domain.model.Track
 import alex.kaplenkov.avitomuzik.presentation.ui.common.Cover
 import alex.kaplenkov.avitomuzik.presentation.viewmodel.PlayerViewModel
 import androidx.compose.foundation.layout.Arrangement
@@ -59,33 +60,10 @@ fun PlayerScreen(navController: NavHostController, trackId: Long, viewModel: Pla
                 cover = cover
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(track.title, style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        track.album.title ?: "Unknown Album",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    Text(track.artist.name, style = MaterialTheme.typography.labelLarge)
-                }
-                IconButton(
-                    modifier = Modifier
-                        .minimumInteractiveComponentSize(),
-                    onClick = { viewModel.toggleTrackSaved(track, context) }
-                ) {
-                    Icon(
-                        painter = if (!isSaved) {
-                            painterResource(id = R.drawable.add)
-                        } else {
-                            painterResource(id = R.drawable.delete)
-                        },
-                        contentDescription = "Add Track")
-                }
-            }
+            CommonInfo(
+                track = track,
+                isSaved = isSaved
+            ) { viewModel.toggleTrackSaved(it, context) }
             Spacer(modifier = Modifier.height(16.dp))
 
             Slider(
@@ -104,32 +82,81 @@ fun PlayerScreen(navController: NavHostController, trackId: Long, viewModel: Pla
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                IconButton(onClick = { viewModel.previousTrack() }) {
-                    Icon(
-                        painterResource(id = R.drawable.previous),
-                        contentDescription = "Previous Track"
-                    )
-                }
-                IconButton(onClick = {
-                    if (isPlaying) viewModel.pause() else viewModel.play()
-                }) {
-                    Icon(
-                        painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                        contentDescription = "Play/Pause"
-                    )
-                }
-                IconButton(onClick = { viewModel.nextTrack() }) {
-                    Icon(painterResource(id = R.drawable.next), contentDescription = "Next Track")
-                }
-            }
+            TrackControls(
+                isPlaying = isPlaying,
+                onPreviousClick = { viewModel.previousTrack() },
+                onNextClick =  {viewModel.nextTrack() },
+                onPlayPauseClick = { if (isPlaying) viewModel.pause() else viewModel.play() }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
                 Text("Back")
             }
+        }
+    }
+}
+
+@Composable
+fun TrackControls(
+    isPlaying: Boolean,
+    onPreviousClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    onNextClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        IconButton(onClick = onPreviousClick) {
+            Icon(
+                painterResource(id = R.drawable.previous),
+                contentDescription = "Previous Track"
+            )
+        }
+        IconButton(onClick = onPlayPauseClick) {
+            Icon(
+                painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                contentDescription = "Play/Pause"
+            )
+        }
+        IconButton(onClick = onNextClick) {
+            Icon(painterResource(id = R.drawable.next), contentDescription = "Next Track")
+        }
+    }
+}
+
+@Composable
+private fun CommonInfo(
+    track: Track,
+    isSaved: Boolean,
+    onSaveClick: (Track) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(track.title, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                track.album.title ?: "Unknown Album",
+                style = MaterialTheme.typography.labelSmall
+            )
+            Text(track.artist.name, style = MaterialTheme.typography.labelLarge)
+        }
+        IconButton(
+            modifier = Modifier.minimumInteractiveComponentSize(),
+            onClick = { onSaveClick(track) }
+        ) {
+            Icon(
+                painter = if (!isSaved) {
+                    painterResource(id = R.drawable.add)
+                } else {
+                    painterResource(id = R.drawable.delete)
+                },
+                contentDescription = "Add Track"
+            )
         }
     }
 }

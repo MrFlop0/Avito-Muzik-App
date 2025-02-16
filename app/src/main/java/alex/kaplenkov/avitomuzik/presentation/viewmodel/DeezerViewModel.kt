@@ -28,9 +28,6 @@ class DeezerViewModel @Inject constructor(
     private val _savedSearchResult = MutableStateFlow<SearchModel?>(null)
     val savedSearchResult: StateFlow<SearchModel?> = _savedSearchResult
 
-    private val _currentTrack = MutableStateFlow<Track?>(null)
-    val currentTrack: StateFlow<Track?> = _currentTrack
-
     private val _savedTracks = MutableStateFlow<List<Track>?>(emptyList())
     val savedTracks: StateFlow<List<Track>?> = _savedTracks
 
@@ -66,12 +63,6 @@ class DeezerViewModel @Inject constructor(
 
         viewModelScope.launch {
             _savedSearchResult.value = savedTrackRepository.searchSavedTracks(query)
-        }
-    }
-
-    fun fetchTrack(id: Long) {
-        viewModelScope.launch {
-            _currentTrack.value = apiTrackRepository.getTrackById(id)
         }
     }
 }
